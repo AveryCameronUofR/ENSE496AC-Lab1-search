@@ -90,35 +90,37 @@ def depthFirstSearch(problem):
     from util import Stack
     fringe = Stack()
     startState = problem.getStartState()
-    fringe.push((startState, "Start"))
+    fringe.push((startState, "Start", startState))
     closed = []
     goalFound = False
-    actions = []
-
-    while(fringe.isEmpty() == False and goalFound == False):
-        loc, direction = fringe.pop()
-        print(loc)
-        print(closed)
-        print(explored(closed, loc))
-        if (explored(closed, loc)):
-            print("Already Closed")
-            actions.pop()
-            continue
-        actions.append((loc, direction))
-        closed.append(loc)
-        for optionLoc, direction, _cost in problem.getSuccessors(loc):
-            if (not explored(closed, optionLoc)):
-                if (problem.isGoalState(optionLoc)):
-                    actions.append((optionLoc, direction))
-                    goalFound = True
-                    break
-                fringe.push((optionLoc, direction))
+    actions = [(startState, startState)]
     print(actions)
-def explored(explored, state):
-    for location in explored:
-        if location == state:
-            return True
-    return False
+    while(fringe.isEmpty() == False and goalFound == False):
+        loc, direction, parent = fringe.pop()        
+        if (loc in closed):
+            continue
+        actions = popUntilParent(parent, actions)
+        actions.append((loc, direction))
+        if problem.isGoalState(loc):
+            goalFound = True
+            continue
+        closed.append(loc)
+        options = problem.getSuccessors(loc)
+        for optionLoc, direction, _cost in options:
+            if (optionLoc not in closed):
+                fringe.push((optionLoc, direction, loc))
+    actions.pop(0)
+    actions.pop(0)
+    path = []
+    for loc, direction in actions:
+        path.append(getDirection(direction))
+    print(path)
+    return path
+
+def popUntilParent(loc, actions):
+    while (actions[-1][0] != loc):
+        actions.pop()
+    return actions
 
 def getDirection(direction):
     from game import Directions
