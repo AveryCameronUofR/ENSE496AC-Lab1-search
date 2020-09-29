@@ -87,56 +87,33 @@ def depthFirstSearch(problem):
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
     "*** YOUR CODE HERE ***"
-    startState = problem.getStartState()
-    print("Start:", startState)
-    print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
-    print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     from util import Stack
-    import time
     fringe = Stack()
-    fringe.push((startState, "Start", "None"))
+    startState = problem.getStartState()
+    fringe.push((startState, "Start"))
     closed = []
     goalFound = False
     actions = []
+
     while(fringe.isEmpty() == False and goalFound == False):
-        loc, direction, parent = fringe.pop()
-        actions.append((direction, loc,  parent)) 
+        loc, direction = fringe.pop()
+        print(loc)
+        print(closed)
+        print(explored(closed, loc))
         if (explored(closed, loc)):
-            actions = popUntilParent(parent,actions, True)
+            print("Already Closed")
+            actions.pop()
             continue
-        actions = popUntilParent(parent,actions, False)
+        actions.append((loc, direction))
         closed.append(loc)
-        if problem.isGoalState(loc):
-            goalFound = True
-        options = problem.getSuccessors(loc)
-        for optionLoc, direction, _cost in options:
-            fringe.push((optionLoc, direction, loc))
-
+        for optionLoc, direction, _cost in problem.getSuccessors(loc):
+            if (not explored(closed, optionLoc)):
+                if (problem.isGoalState(optionLoc)):
+                    actions.append((optionLoc, direction))
+                    goalFound = True
+                    break
+                fringe.push((optionLoc, direction))
     print(actions)
-    path = []
-    for direction, _loc, _parent in actions:
-        if (not direction == 'Start'):
-            direction = getDirection(direction)
-            path.append(direction)
-    return path
-def popUntilParent(loc, actions, closed=True):
-    tempActions = actions
-    occurences = 0
-    occurencesTemp = 0
-    for _direction, _current, parent in reversed(tempActions):
-        if (parent == loc):
-            occurences +=1
-    if (occurences == 1 and closed ==False):
-        return tempActions
-    for _direction, _current, parent in reversed(tempActions):
-        tempActions.pop()
-        if (parent == loc):
-            occurencesTemp += 1
-            if (occurences == occurencesTemp):
-                return tempActions
-            
-    return tempActions
-
 def explored(explored, state):
     for location in explored:
         if location == state:
