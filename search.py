@@ -4,7 +4,7 @@
 # educational purposes provided that (1) you do not distribute or publish
 # solutions, (2) you retain this notice, and (3) you provide clear
 # attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
-# 
+#
 # Attribution Information: The Pacman AI projects were developed at UC Berkeley.
 # The core projects and autograders were primarily created by John DeNero
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
@@ -18,6 +18,7 @@ Pacman agents (in searchAgents.py).
 """
 
 import util
+
 
 class SearchProblem:
     """
@@ -70,7 +71,8 @@ def tinyMazeSearch(problem):
     from game import Directions
     s = Directions.SOUTH
     w = Directions.WEST
-    return  [s, s, w, s, w, w, s, w]
+    return [s, s, w, s, w, w, s, w]
+
 
 def depthFirstSearch(problem):
     """
@@ -88,108 +90,105 @@ def depthFirstSearch(problem):
     """
     "*** YOUR CODE HERE ***"
     from util import Stack
+    # Set up stack and starting states
     fringe = Stack()
     startState = problem.getStartState()
     fringe.push((startState, "Start", startState))
     closed = []
     goalFound = False
     actions = [(startState, startState)]
-    print(actions)
+    # Itterate through stack until empty or goal found
     while(fringe.isEmpty() == False and goalFound == False):
-        loc, direction, parent = fringe.pop()        
+        # Pop info from fringe
+        loc, direction, parent = fringe.pop()
+        # ignore visited nodes
         if (loc in closed):
+            while loc in closed:
+                loc, direction, parent = fringe.pop()
             continue
+        # pop back solution to past parent
         actions = popUntilParent(parent, actions)
         actions.append((loc, direction))
         if problem.isGoalState(loc):
             goalFound = True
-            continue
+            break
         closed.append(loc)
+        # Get successors
         options = problem.getSuccessors(loc)
         for optionLoc, direction, _cost in options:
             if (optionLoc not in closed):
                 fringe.push((optionLoc, direction, loc))
+    # Pop initial setup nodes
+    if (goalFound == False):
+        raise Exception('Goal Not Found, Failure')
+    print(actions)
     actions.pop(0)
     actions.pop(0)
+    # Convert actions to a direction
+    path = []
+    for loc, direction in actions:
+        path.append(direction)
+    print(path)
+    return path
+
+
+def popUntilParent(loc, actions):
+    try:
+        while (actions[-1][0] != loc):
+            actions.pop()
+    except:
+        pass
+    finally:
+        return actions
+
+
+def breadthFirstSearch(problem):
+    """Search the shallowest nodes in the search tree first."""
+    "*** YOUR CODE HERE ***"
+    from util import Queue
+    # Set up stack and starting states
+    fringe = Queue()
+    startState = problem.getStartState()
+    fringe.push((startState, "Start", startState))
+    closed = []
+    goalFound = False
+    actions = [(startState, startState)]
+    # Itterate through stack until empty or goal found
+    while(fringe.isEmpty() == False and goalFound == False):
+        # Pop info from fringe
+        loc, direction, parent = fringe.pop()
+        # ignore visited nodes
+        if (loc in closed):
+            continue
+        # pop back solution to past parent
+        actions = popUntilParent(parent, actions)
+        actions.append((loc, direction))
+        if problem.isGoalState(loc):
+            goalFound = True
+            break
+        closed.append(loc)
+        # Get successors
+        options = problem.getSuccessors(loc)
+        for optionLoc, direction, _cost in options:
+            if (optionLoc not in closed):
+                fringe.push((optionLoc, direction, loc))
+    # Pop initial setup nodes
+    if (goalFound == False):
+        raise Exception('Goal Not Found, Failure')
+    # Convert actions to a direction
+    print(loc)
     path = []
     for loc, direction in actions:
         path.append(getDirection(direction))
     print(path)
     return path
 
-def popUntilParent(loc, actions):
-    while (actions[-1][0] != loc):
-        actions.pop()
-    return actions
-
-def getDirection(direction):
-    from game import Directions
-    n = Directions.NORTH
-    s = Directions.SOUTH
-    w = Directions.WEST
-    e = Directions.EAST
-    if (direction == 'North'):
-        return n
-    if (direction == 'South'):
-        return s
-    if (direction == 'East'):
-       return e
-    if (direction == 'West'):
-        return w
-
-def dfs (problem, state, actions, stack, explored, totalCost):
-    from game import Directions
-    import util
-    n = Directions.NORTH
-    s = Directions.SOUTH
-    w = Directions.WEST
-    e = Directions.EAST
-    state = problem.getStartState()
-    options = problem.getSuccessors(problem.getStartState())
-    for option in options:
-        stack.push(option)
-    print("Stack is:")
-    print(stack)
-    while stack.isEmpty == False:  
-        nextLoc = stack.pop()
-        loc = nextLoc[0]
-        print(loc)
-        direction = nextLoc[1]
-        print(direction)
-        cost = nextLoc[2]
-        print(cost)
-        explored.push(loc)
-        if (cost > 999999):
-            return
-        if (explored(explored, state)):
-            return
-        if (direction == 'North'):
-            actions.append(n)
-            totalCost += 1
-            dfs(problem, state, actions, stack, explored, totalCost)
-        if (direction == 'South'):
-            actions.append(s)
-            totalCost += 1
-            dfs(problem, state, actions, stack, explored, totalCost)
-        if (direction == 'East'):
-            actions.append(e)
-            totalCost += 1
-            dfs(problem, state, actions, stack, explored, totalCost)
-        if (direction == 'West'):
-            actions.append(w)
-            totalCost += 1
-            dfs(problem, state, actions, stack, explored, totalCost)
-    return actions
-
-def breadthFirstSearch(problem):
-    """Search the shallowest nodes in the search tree first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
     util.raiseNotDefined()
+
 
 def nullHeuristic(state, problem=None):
     """
@@ -197,6 +196,7 @@ def nullHeuristic(state, problem=None):
     goal in the provided SearchProblem.  This heuristic is trivial.
     """
     return 0
+
 
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
