@@ -98,58 +98,48 @@ def depthFirstSearch(problem):
     closed = []
     goalFound = False
     actions = []
-    actions2 = Stack()
     while(fringe.isEmpty() == False and goalFound == False):
         loc, direction, parent = fringe.pop()
-        actions.append((direction, loc,  parent))        
+        actions.append((direction, loc,  parent)) 
         if (explored(closed, loc)):
-            actions = popUntilParent(parent,actions)
+            actions = popUntilParent(parent,actions, True)
             continue
+        actions = popUntilParent(parent,actions, False)
         closed.append(loc)
-        actions = popUntilParentGeneral(parent, actions)
         if problem.isGoalState(loc):
             goalFound = True
         options = problem.getSuccessors(loc)
         for optionLoc, direction, _cost in options:
             fringe.push((optionLoc, direction, loc))
-            
-        #time.sleep(1.5)
+
     print(actions)
-    return actions
-def popUntilParent(loc, actions):
+    path = []
+    for direction, _loc, _parent in actions:
+        if (not direction == 'Start'):
+            direction = getDirection(direction)
+            path.append(direction)
+    return path
+def popUntilParent(loc, actions, closed=True):
     tempActions = actions
+    occurences = 0
+    occurencesTemp = 0
+    for _direction, _current, parent in reversed(tempActions):
+        if (parent == loc):
+            occurences +=1
+    if (occurences == 1 and closed ==False):
+        return tempActions
     for _direction, _current, parent in reversed(tempActions):
         tempActions.pop()
         if (parent == loc):
-            return tempActions
+            occurencesTemp += 1
+            if (occurences == occurencesTemp):
+                return tempActions
             
     return tempActions
-def popUntilParentGeneral(loc, actions):
-    i = 0
-    found = False
-    tempActions = actions
-    print(tempActions)
-    print("Location to search for: " + str(loc))
-    for _direction, _current, parent in reversed(tempActions):
-        i += 1
-        if (parent == loc):
-            found = True
-            break
-    print(i)
-    if(i >1) and found == True:
-        tempActions = popUntilParent(loc, tempActions)    
-    return tempActions
-    """
-    while(temp.isEmpty() == False and found == False):
-        direction, parent = temp.pop()
-        if (parent[0] == loc[0] and parent[1] == loc[1]):
-            found = True
-    return temp
-    """
 
 def explored(explored, state):
     for location in explored:
-        if location[0] == state[0] and location[1] == state[1]:
+        if location == state:
             return True
     return False
 
