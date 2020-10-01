@@ -103,8 +103,6 @@ def depthFirstSearch(problem):
         loc, direction, parent = fringe.pop()
         # ignore visited nodes
         if (loc in closed):
-            while loc in closed:
-                loc, direction, parent = fringe.pop()
             continue
         # pop back solution to past parent
         actions = popUntilParent(parent, actions)
@@ -122,11 +120,12 @@ def depthFirstSearch(problem):
     if (goalFound == False):
         raise Exception('Goal Not Found, Failure')
     print(actions)
+    #Remove starting state actions (dummy actions for the list)
     actions.pop(0)
     actions.pop(0)
-    # Convert actions to a direction
+    # Convert takes only the direction
     path = []
-    for loc, direction in actions:
+    for _loc, direction in actions:
         path.append(direction)
     print(path)
     return path
@@ -146,13 +145,15 @@ def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
     from util import Queue
+    import time
     # Set up stack and starting states
     fringe = Queue()
     startState = problem.getStartState()
     fringe.push((startState, "Start", startState))
     closed = []
     goalFound = False
-    actions = [(startState, startState)]
+    goal = (0,0,0)
+    actions = {}
     # Itterate through stack until empty or goal found
     while(fringe.isEmpty() == False and goalFound == False):
         # Pop info from fringe
@@ -160,11 +161,10 @@ def breadthFirstSearch(problem):
         # ignore visited nodes
         if (loc in closed):
             continue
-        # pop back solution to past parent
-        actions = popUntilParent(parent, actions)
-        actions.append((loc, direction))
+        actions[loc] = (parent, direction)
         if problem.isGoalState(loc):
             goalFound = True
+            goal = (loc, direction, parent)
             break
         closed.append(loc)
         # Get successors
@@ -175,12 +175,23 @@ def breadthFirstSearch(problem):
     # Pop initial setup nodes
     if (goalFound == False):
         raise Exception('Goal Not Found, Failure')
+    
     # Convert actions to a direction
-    print(loc)
     path = []
-    for loc, direction in actions:
-        path.append(getDirection(direction))
-    print(path)
+    goalDirection = goal[1]
+    goalParent = goal[2]
+    goal = goal[0]
+    temp = actions[goal]
+    #find the parent of the state until the start
+    while temp[0] != startState:
+        direction = temp[1]
+        parent = temp[0]
+        path.append(direction)
+        temp = actions[parent]
+    #append the remaining direction
+    path.append(temp[1])
+    #Reverse the path to get the directions from the start instead of the goal
+    path.reverse()
     return path
 
 
