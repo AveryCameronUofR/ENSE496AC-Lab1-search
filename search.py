@@ -145,7 +145,7 @@ def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
     from util import Queue
-    # Set up stack and starting states
+    # Set up Queue and starting states
     fringe = Queue()
     startState = problem.getStartState()
     fringe.push((startState, "Start", startState))
@@ -153,7 +153,7 @@ def breadthFirstSearch(problem):
     goalFound = False
     goal = (0, 0, 0)
     actions = {}
-    # Itterate through stack until empty or goal found
+    # Itterate through Queue until empty or goal found
     while(fringe.isEmpty() == False and goalFound == False):
         # Pop info from fringe
         loc, direction, parent = fringe.pop()
@@ -196,7 +196,7 @@ def uniformCostSearch(problem):
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
     from util import PriorityQueue
-    # Set up stack and starting states
+    # Set up PriorityQueue and starting states
     fringe = PriorityQueue()
     startState = problem.getStartState()
     fringe.push((startState, "Start", startState, 0), 0)
@@ -204,9 +204,9 @@ def uniformCostSearch(problem):
     goalFound = False
     goal = (0, 0, 0, 0)
     actions = {}
-    # Itterate through stack until empty or goal found
+    # Itterate through PriorityQueue until empty or goal found
     while(fringe.isEmpty() == False and goalFound == False):
-        # Pop info from fringe
+        # Pop least cost info from fringe
         loc, direction, parent, cost = fringe.pop()
         # ignore visited nodes
         if (loc in closed):
@@ -255,7 +255,55 @@ def nullHeuristic(state, problem=None):
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    from util import PriorityQueue
+    # Set up PriorityQueue and starting states
+    fringe = PriorityQueue()
+    startState = problem.getStartState()
+    fringe.push((startState, "Start", startState, 0), 0)
+    closed = []
+    goalFound = False
+    goal = (0,0,0, 0)
+    actions = {}
+    # Itterate through PriorityQueue until empty or goal found
+    while(fringe.isEmpty() == False and goalFound == False):
+        # Pop info from fringe
+        loc, direction, parent, cost = fringe.pop()
+        # ignore visited nodes
+        if (loc in closed):
+            continue
+        actions[loc] = (parent, direction)
+        if problem.isGoalState(loc):
+            goalFound = True
+            goal = (loc, direction, parent)
+            break
+        closed.append(loc)
+        # Get successors
+        options = problem.getSuccessors(loc)
+        for optionLoc, direction, optionCost in options:
+            if (optionLoc not in closed):
+                #calculate the heuristic
+                heuristicCost = heuristic(optionLoc, problem)
+                #push the loc, dir and parent and summed cost, then priority queue weight is cost + heuristic 
+                fringe.push((optionLoc, direction, loc, optionCost + cost), optionCost+cost+heuristicCost)
+    # Pop initial setup nodes
+    if (goalFound == False):
+        raise Exception('Goal Not Found, Failure')
+    
+    # Convert actions to a direction
+    path = []
+    goal = goal[0]
+    temp = actions[goal]
+    #find the parent of the state until the start
+    while temp[0] != startState:
+        direction = temp[1]
+        parent = temp[0]
+        path.append(direction)
+        temp = actions[parent]
+    #append the remaining direction
+    path.append(temp[1])
+    #Reverse the path to get the directions from the start instead of the goal
+    path.reverse()
+    return path
 
 
 # Abbreviations
