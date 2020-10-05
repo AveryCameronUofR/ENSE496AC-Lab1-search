@@ -161,10 +161,16 @@ def breadthFirstSearch(problem):
         if (loc in closed):
             continue
         actions[loc] = (parent, direction)
-        if problem.isGoalState(loc):
-            goalFound = True
-            goal = (loc, direction, parent)
-            break
+        check = problem.isGoalState(loc)
+        if check:
+            print(check)
+            if (check == 3):
+                closed = []
+                goalFound = False
+            else:
+                goalFound = True
+                goal = (loc, direction, parent)
+                break
         closed.append(loc)
         # Get successors
         options = problem.getSuccessors(loc)
@@ -189,6 +195,7 @@ def breadthFirstSearch(problem):
     path.append(temp[1])
     # Reverse the path to get the directions from the start instead of the goal
     path.reverse()
+    print(path)
     return path
 
 

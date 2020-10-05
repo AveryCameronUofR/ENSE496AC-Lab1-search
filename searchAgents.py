@@ -288,6 +288,8 @@ class CornersProblem(search.SearchProblem):
         # Please add any code here which you would like to use
         # in initializing the problem
         "*** YOUR CODE HERE ***"
+        self.cornersFound = [False, False, False, False]
+        self.costFn = lambda x: 1
 
     def getStartState(self):
         """
@@ -302,7 +304,18 @@ class CornersProblem(search.SearchProblem):
         Returns whether this search state is a goal state of the problem.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        try:
+            index = self.corners.index(state)
+            if (self.cornersFound[index] != True):
+                self.cornersFound[index] = True
+                if(all(c == self.cornersFound[0] for c in self.cornersFound) == False):
+                    return 3
+                return True
+        except:
+            pass
+        #based on code on checking a list from: https://stackoverflow.com/questions/3787908/python-determine-if-all-items-of-a-list-are-the-same-item
+        return all(c == self.cornersFound[0] for c in self.cornersFound) and  self.cornersFound[0] != False
+            
 
     def getSuccessors(self, state):
         """
@@ -314,7 +327,23 @@ class CornersProblem(search.SearchProblem):
             state, 'action' is the action required to get there, and 'stepCost'
             is the incremental cost of expanding to that successor
         """
+        '''
+        successors = []
+        for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
+            x,y = state
+            dx, dy = Actions.directionToVector(action)
+            nextx, nexty = int(x + dx), int(y + dy)
+            if not self.walls[nextx][nexty]:
+                nextState = (nextx, nexty)
+                cost = self.costFn(nextState)
+                successors.append( ( nextState, action, cost) )
 
+        # Bookkeeping for display purposes
+        self._expanded += 1 # DO NOT CHANGE
+        if state not in self._visited:
+            self._visited[state] = True
+            self._visitedlist.append(state)
+        '''
         successors = []
         for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
             # Add a successor state to the successor list if the action is legal
@@ -325,7 +354,13 @@ class CornersProblem(search.SearchProblem):
             #   hitsWall = self.walls[nextx][nexty]
 
             "*** YOUR CODE HERE ***"
-
+            x,y = state
+            dx, dy = Actions.directionToVector(action)
+            nextx, nexty = int(x + dx), int(y + dy)
+            if not self.walls[nextx][nexty]:
+                nextState = (nextx, nexty)
+                cost = self.costFn(nextState)
+                successors.append( ( nextState, action, cost) )
         self._expanded += 1 # DO NOT CHANGE
         return successors
 
