@@ -288,6 +288,7 @@ class CornersProblem(search.SearchProblem):
         # Please add any code here which you would like to use
         # in initializing the problem
         "*** YOUR CODE HERE ***"
+        self.gameState = startingGameState
         #Used to track Corners found
         self.cornersFound = {self.corners[0]: 0, self.corners[1]: 0, self.corners[2]:0, self.corners[3]:0}
         #simple cost function
@@ -378,21 +379,86 @@ def cornersHeuristic(state, problem):
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
 
     "*** YOUR CODE HERE ***"
-    
+    """
     xy1 = state[0]
     cost = []
     cornersVisited = state[1].values()
+    corners2 = []
     i = 0
     for c in cornersVisited:
         if (c == 0):
             xy2 = corners[i]
             cost.append(((xy1[0] - xy2[0]) ** 2 + (xy1[1] - xy2[1]) ** 2 ) ** 0.5)
+            corners2.append(xy2)
         i += 1
     if (len(cost)>0):
-        return min(cost)
+        minimum = min(cost)
+        index = cost.index(minimum)
+        return mazeDistance(xy1, corners2[index], problem.startingGameState)
     else:
         return 0
+    """
+    """
+    xy1 = state[0]
+    cost = []
+    cornersVisited = state[1].values()
+    mazeDistances = []
+    i = 0
+    for c in cornersVisited:
+        if (c == 0):
+            xy2 = corners[i]
+            cost.append(((xy1[0] - xy2[0]) ** 2 + (xy1[1] - xy2[1]) ** 2 ) ** 0.5)
+            mazeDistances.append(mazeDistance(xy1, xy2, problem.gameState))
+        i += 1
+    if (len(cost)>0):
+        minimum = min(mazeDistances)
+        index = mazeDistances.index(minimum)
 
+        return minimum
+    else:
+        return 0
+    """
+    xy1 = state[0]
+    cost = []
+    cornersVisited = state[1].values()
+    mazeDistances = []
+    cornerCount = 0
+    cornerCompare = []
+    i = 0
+    j = 0
+    for c in cornersVisited:
+        if (c == 0):
+            xy2 = corners[i]
+            cornerCount += 1
+            for c2 in cornersVisited:
+                xy3 = corners[j]
+                if (c2 == 0):
+                    if(xy3 != xy2):
+                        print(mazeDistance(xy2, xy3, problem.gameState))
+                        mazeDistances.append(mazeDistance(xy2, xy3, problem.gameState))
+                        cornerCompare.append((xy2,xy3))
+                j += 1
+        j = 0
+        i+= 1
+    if (cornerCount == 0):
+        return 0
+    elif (cornerCount == 1):
+        i = 0
+        for c in cornersVisited:
+            if (c == 0):
+                xy2 = corners[i]
+                mazeDistances.append(mazeDistance(xy1, xy2, problem.gameState))
+            i += 1
+        return mazeDistances[0]
+    else:
+        print(mazeDistances)
+        maximum = max(mazeDistances)
+        index = mazeDistances.index(maximum)
+        cornerList = cornerCompare[index]
+        mazeDistances2 = []
+        mazeDistances2.append(mazeDistance(xy1, cornerList[0], problem.gameState))
+        mazeDistances2.append(mazeDistance(xy1, cornerList[1], problem.gameState))
+        return min(mazeDistances2) + maximum
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
     def __init__(self):
@@ -495,10 +561,11 @@ def foodHeuristic(state, problem):
         for f in foodGridList:
             cost.append(((position[0] - f[0]) ** 2 + (position[1] - f[1]) ** 2 ) ** 0.5)
             i += 1
-        if (len(cost)>0):
-            return min(cost)
-        else:
-            return 0
+    if (len(cost)>0):
+        minimum = min(cost)
+        index = cost.index(minimum)
+        return mazeDistance(position, foodGridList[index], problem.startingGameState)
+    return 0
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
