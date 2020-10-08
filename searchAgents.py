@@ -288,7 +288,9 @@ class CornersProblem(search.SearchProblem):
         # Please add any code here which you would like to use
         # in initializing the problem
         "*** YOUR CODE HERE ***"
-        self.cornersFound = [False, False, False, False]
+        #Used to track Corners found
+        self.cornersFound = {self.corners[0]: 0, self.corners[1]: 0, self.corners[2]:0, self.corners[3]:0}
+        #simple cost function
         self.costFn = lambda x: 1
 
     def getStartState(self):
@@ -297,24 +299,18 @@ class CornersProblem(search.SearchProblem):
         space)
         """
         "*** YOUR CODE HERE ***"
-        return self.startingPosition
+        #return starting pos and corners
+        return (self.startingPosition, self.cornersFound) 
 
     def isGoalState(self, state):
         """
         Returns whether this search state is a goal state of the problem.
         """
         "*** YOUR CODE HERE ***"
-        try:
-            index = self.corners.index(state)
-            if (self.cornersFound[index] != True):
-                self.cornersFound[index] = True
-                if(all(c == self.cornersFound[0] for c in self.cornersFound) == False):
-                    return 3
-                return True
-        except:
-            pass
+        #check if all corners are 1
+        state = state[1].values()
         #based on code on checking a list from: https://stackoverflow.com/questions/3787908/python-determine-if-all-items-of-a-list-are-the-same-item
-        return all(c == self.cornersFound[0] for c in self.cornersFound) and  self.cornersFound[0] != False
+        return all(s == 1 for s in state)
             
 
     def getSuccessors(self, state):
@@ -327,40 +323,27 @@ class CornersProblem(search.SearchProblem):
             state, 'action' is the action required to get there, and 'stepCost'
             is the incremental cost of expanding to that successor
         """
-        '''
         successors = []
         for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
-            x,y = state
-            dx, dy = Actions.directionToVector(action)
-            nextx, nexty = int(x + dx), int(y + dy)
-            if not self.walls[nextx][nexty]:
-                nextState = (nextx, nexty)
-                cost = self.costFn(nextState)
-                successors.append( ( nextState, action, cost) )
-
-        # Bookkeeping for display purposes
-        self._expanded += 1 # DO NOT CHANGE
-        if state not in self._visited:
-            self._visited[state] = True
-            self._visitedlist.append(state)
-        '''
-        successors = []
-        for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
-            # Add a successor state to the successor list if the action is legal
-            # Here's a code snippet for figuring out whether a new position hits a wall:
-            #   x,y = currentPosition
-            #   dx, dy = Actions.directionToVector(action)
-            #   nextx, nexty = int(x + dx), int(y + dy)
-            #   hitsWall = self.walls[nextx][nexty]
-
             "*** YOUR CODE HERE ***"
-            x,y = state
+            #Take the position part of the state
+            x,y = state[0]
             dx, dy = Actions.directionToVector(action)
             nextx, nexty = int(x + dx), int(y + dy)
             if not self.walls[nextx][nexty]:
+                #Copy the corners part of the state
+                #Copy is there since lists are mutable, after lots debugging
+                tempCorner = state[1].copy()
                 nextState = (nextx, nexty)
                 cost = self.costFn(nextState)
-                successors.append( ( nextState, action, cost) )
+                try:
+                    #check if next state is a corner
+                    index = self.corners.index(nextState)
+                    tempCorner[self.corners[index]] = 1
+                except:
+                    pass
+                #add successor and corner list
+                successors.append(((nextState, tempCorner), action, cost))
         self._expanded += 1 # DO NOT CHANGE
         return successors
 
@@ -395,7 +378,19 @@ def cornersHeuristic(state, problem):
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
 
     "*** YOUR CODE HERE ***"
-    return 0 # Default to trivial solution
+    xy1 = state[0]
+    cost = []
+    cornersVisited = state[1].values()
+    i = 0
+    for c in cornersVisited:
+        if (c == 0):
+            xy2 = corners[i]
+            cost.append(((xy1[0] - xy2[0]) ** 2 + (xy1[1] - xy2[1]) ** 2 ) ** 0.5)
+        i += 1
+    if (len(cost)>0):
+        return min(cost)
+    else:
+        return 0
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
@@ -488,7 +483,10 @@ def foodHeuristic(state, problem):
     problem.heuristicInfo['wallCount']
     """
     position, foodGrid = state
+    print (position)
+    print(foodGrid)
     "*** YOUR CODE HERE ***"
+    foodGridList = foodGrid.asList()
     return 0
 
 class ClosestDotSearchAgent(SearchAgent):
